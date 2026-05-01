@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-export const generateToken = (id: string, role: string): string => {
+export const generateToken = (id: number, role: string): string => {
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in env');
   }

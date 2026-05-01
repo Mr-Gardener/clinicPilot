@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest, UserPayload } from '../types/express';
 
-export const protect = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ message: 'Not authorized, token missing' });
@@ -16,7 +16,7 @@ export const protect = (req: AuthRequest, res: Response, next: NextFunction) => 
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET) as {
-      id: string;
+      id: number;
       role: UserPayload['role'];
     };
 

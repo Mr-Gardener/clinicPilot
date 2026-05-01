@@ -1,17 +1,10 @@
 import { Response, NextFunction } from 'express';
-import { AuthRequest } from '../types/express';
+import { AuthRequest, UserPayload } from '../types/express';
+
+type Role = UserPayload['role'];
 
 export const requireRole =
-  (
-    roles: Array<
-      AuthRequest['user'] extends undefined
-        ? string
-        : AuthRequest['user'] extends { role: infer R }
-          ? R
-          : string
-    >,
-  ) =>
-  (req: AuthRequest, res: Response, next: NextFunction) => {
+  (roles: Role[]) => (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: 'Not authenticated' });
     }

@@ -1,7 +1,7 @@
 import { Request } from 'express';
 
 export interface UserPayload {
-  id: string;
+  id: number;
   role: 'superAdmin' | 'doctor' | 'receptionist' | 'staff';
 }
 

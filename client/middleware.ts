@@ -2,33 +2,24 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get("token")?.value;
-  const role = req.cookies.get("role")?.value;
+  const token =
+    req.cookies.get("token")?.value ||
+    req.headers.get("authorization")?.replace("Bearer ", "");
 
-  // Protected routes
-  const adminRoutes = req.nextUrl.pathname.startsWith("/admin");
-  const doctorRoutes = req.nextUrl.pathname.startsWith("/doctor");
-  const staffRoutes = req.nextUrl.pathname.startsWith("/staff");
+  const protectedRoutes = ["/superAdmin", "/staff", "/doctor"];
 
-  if (!token) {
+  const isProtected = protectedRoutes.some((route) =>
+    req.nextUrl.pathname.startsWith(route)
+  );
+
+  if (isProtected && !token) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  if (adminRoutes && role !== "superAdmin") {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
-  if (doctorRoutes && role !== "doctor") {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
-  if (staffRoutes && role !== "staff") {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
+  console.log("Middleware passed");
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/doctor/:path*", "/staff/:path*"],
+  matcher: ["/superAdmin/:path*", "/staff/:path*", "/doctor/:path*"],
 };

@@ -1,8 +1,11 @@
+"use client";
+
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRouter } from "next/navigation";
+import axios from "../utils/axios";
 
 export default function LoginPage() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -14,40 +17,39 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+        { email, password },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || "Login failed");
-        setLoading(false);
-        return;
-      }
+      const data = res.data;
 
       // Save token + role
       localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role);
+      localStorage.setItem("role", data.user.role);
+
+      document.cookie = `token=${data.token}; path=/; SameSite=Lax; Secure`;
+      const role = data.user.role.toLowerCase();
 
       // Redirect based on role
-      if (data.role === "superAdmin") {
-        navigate("/admin/manage-users");
-      } else if (data.role === "doctor") {
-        navigate("/doctor/dashboard");
-      } else if (data.role === "staff") {
-        navigate("/staff/dashboard");
+      if (role === "superAdmin") {
+        router.push("/superAdmin/dashboard");
+      } else if (role === "doctor") {
+        router.push("/doctor/dashboard");
+      } else if (role === "staff" || role === "receptionist") {
+        router.push("/receptionist/dashboard");
       } else {
-        navigate("/login");
+        console.error("❌ Unknown role, redirecting to login");
+        router.push("/login");
       }
     } catch (error) {
       console.log(error);
-      setError("Network error");
+      setError("Network error or invalid credentials");
+    } finally {
+      console.log("⏹ Setting loading to false");
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
